@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0"><i class="fas fa-trophy me-2 text-warning"></i>Subject Toppers</h3>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Search Subject</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="subjectSearch" placeholder="Type to search...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Sort By</label>
+                <select class="form-select" id="sortSelect">
+                    <option value="subject">Subject A-Z</option>
+                    <option value="subject_desc">Subject Z-A</option>
+                    <option value="marks">Highest Marks</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Class Filter</label>
+                <select class="form-select" id="classFilter">
+                    <option value="all">All Classes</option>
+                    <option value="X">Class X</option>
+                    <option value="XI">Class XI</option>
+                    <option value="XII">Class XII</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subject Toppers Cards -->
+<div class="row" id="toppersContainer">
+    {% for t in toppers %}
+    <div class="col-lg-6 col-xl-4 mb-4 subject-card" data-subject="{{ t.subject|lower }}">
+        <div class="card shadow-sm h-100 subject-topper-card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-book me-2"></i>{{ t.subject }}
+                    <span class="badge bg-white text-warning ms-2">Top: {{ t.max_grade }}%</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 1st Rank -->
+                <div class="topper-item first-rank mb-3 p-3 bg-light rounded-3">
+                    <div class="d-flex align-items-center">
+                        <div class="rank-badge bg-warning text-white rounded-circle me-3">
+                            <span class="fw-bold">1</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">{{ t.name }}</h6>
+                            <p class="mb-1 text-muted small">Roll: {{ t.roll_number }}</p>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-warning" data-grade="{{ t.max_grade }}"></div>
+                            </div>
+                            <small class="text-muted">{{ t.max_grade }}% Marks</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Toppers Data Available</h5>
+                <p class="text-muted">Add grades to see subject toppers</p>
+                <a href="/add-grade" class="btn btn-warning">
+                    <i class="fas fa-plus me-1"></i> Add Grades
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- JavaScript for interactive features -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Progress bars ko set karo
+        const progressBars = document.querySelectorAll('.progress-bar[data-grade]');
+        progressBars.forEach(bar => {
+            const grade = parseFloat(bar.getAttribute('data-grade'));
+            bar.style.width = grade + '%';
+        });
+
+        // Search functionality
+        const subjectSearch = document.getElementById('subjectSearch');
+        if (subjectSearch) {
+            subjectSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.subject-card');
+                
+                cards.forEach(card => {
+                    const subject = card.getAttribute('data-subject');
+                    if (subject.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Sort functionality
+        const sortSelect = document.getElementById('sortSelect');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+                alert('Sorted by: ' + this.value);
+            });
+        }
+
+        // Filter functionality
+        const classFilter = document.getElementById('classFilter');
+        if (classFilter) {
+            classFilter.addEventListener('change', function() {
+                alert('Filtered by: ' + this.value);
+            });
+        }
+    });
+</script>
+
+<style>
+.subject-topper-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.subject-topper-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0;
+    border: none;
+}
+
+.rank-badge {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.first-rank {
+    background-color: #fff8e1;
+    border: 2px solid #ffeaa7;
+}
+</style>
+{% endblock %}

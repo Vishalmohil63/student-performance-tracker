@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0"><i class="fas fa-chart-line me-2 text-success"></i>Add Grade</h3>
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Grade Information</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" id="addGradeForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Roll Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-hashtag text-success"></i></span>
+                                <input type="text" class="form-control" name="roll" id="rollNumber" required 
+                                       placeholder="Enter student roll number" list="rollSuggestions">
+                            </div>
+                            <datalist id="rollSuggestions">
+                                {% for student in students %}
+                                <option value="{{ student.roll_number }}">
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Subject <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-book text-success"></i></span>
+                                <select class="form-select" name="subject" required>
+                                    <option value="">Select Subject</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Physics">Physics</option>
+                                    <option value="Chemistry">Chemistry</option>
+                                    <option value="Biology">Biology</option>
+                                    <option value="English">English</option>
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="other">Other Subject</option>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control mt-2" name="subject_custom" id="subjectCustom" 
+                                   placeholder="Enter custom subject" style="display: none;">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Grade <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-percent text-success"></i></span>
+                                <input type="number" class="form-control" name="grade" id="gradeInput" 
+                                       min="0" max="100" step="0.01" required placeholder="0-100">
+                            </div>
+                            <div class="form-text">Enter percentage (0 to 100)</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Semester</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-calendar text-success"></i></span>
+                                <select class="form-select" name="semester">
+                                    <option value="">Select Semester</option>
+                                    <option value="1">Semester 1</option>
+                                    <option value="2">Semester 2</option>
+                                    <option value="3">Semester 3</option>
+                                    <option value="4">Semester 4</option>
+                                    <option value="5">Semester 5</option>
+                                    <option value="6">Semester 6</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Exam Type</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-file-alt text-success"></i></span>
+                                <select class="form-select" name="exam_type">
+                                    <option value="">Select Exam Type</option>
+                                    <option value="Midterm">Midterm</option>
+                                    <option value="Final">Final</option>
+                                    <option value="Quiz">Quiz</option>
+                                    <option value="Assignment">Assignment</option>
+                                    <option value="Project">Project</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Grade Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-calendar-day text-success"></i></span>
+                                <input type="date" class="form-control" name="grade_date" 
+                                       value="{{ today }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Remarks</label>
+                        <textarea class="form-control" name="remarks" rows="2" 
+                                  placeholder="Any additional remarks about this grade..."></textarea>
+                    </div>
+
+                    <!-- Grade Preview -->
+                    <div class="card bg-light mt-4" id="gradePreview" style="display: none;">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-eye me-2"></i>Grade Preview</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Student:</strong> <span id="previewRoll">-</span></p>
+                                    <p class="mb-1"><strong>Subject:</strong> <span id="previewSubject">-</span></p>
+                                    <p class="mb-1"><strong>Grade:</strong> <span id="previewGrade">-</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Status:</strong> <span id="previewStatus" class="badge">-</span></p>
+                                    <p class="mb-1"><strong>Grade Point:</strong> <span id="previewPoint">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success px-4 py-2">
+                            <i class="fas fa-save me-2"></i> Save Grade
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary px-4 py-2">
+                            <i class="fas fa-redo me-2"></i> Reset Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card bg-light border-0 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-user-graduate fa-2x text-success mb-2"></i>
+                        <h4 class="mb-0">{{ stats.total_students if stats else 0 }}</h4>
+                        <small class="text-muted">Total Students</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-book-open fa-2x text-info mb-2"></i>
+                        <h4 class="mb-0">{{ stats.total_subjects if stats else 0 }}</h4>
+                        <small class="text-muted">Subjects</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chart-bar fa-2x text-warning mb-2"></i>
+                        <h4 class="mb-0">{{ stats.total_grades if stats else 0 }}</h4>
+                        <small class="text-muted">Grades Recorded</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light border-0 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-percentage fa-2x text-primary mb-2"></i>
+                        <h4 class="mb-0">85.2%</h4>
+                        <small class="text-muted">Class Average</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for enhanced functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show/hide custom subject input
+        const subjectSelect = document.querySelector('select[name="subject"]');
+        const subjectCustom = document.getElementById('subjectCustom');
+        
+        if (subjectSelect) {
+            subjectSelect.addEventListener('change', function() {
+                subjectCustom.style.display = this.value === 'other' ? 'block' : 'none';
+                if (this.value !== 'other') subjectCustom.value = '';
+                updateGradePreview();
+            });
+        }
+
+        // Grade input validation and preview
+        const gradeInput = document.getElementById('gradeInput');
+        if (gradeInput) {
+            gradeInput.addEventListener('input', function() {
+                if (this.value > 100) this.value = 100;
+                if (this.value < 0) this.value = 0;
+                updateGradePreview();
+            });
+        }
+
+        // Roll number input for preview
+        const rollInput = document.getElementById('rollNumber');
+        if (rollInput) {
+            rollInput.addEventListener('input', updateGradePreview);
+        }
+
+        // Update grade preview
+        function updateGradePreview() {
+            const preview = document.getElementById('gradePreview');
+            const grade = parseFloat(gradeInput?.value) || 0;
+            const subject = subjectSelect?.value === 'other' ? subjectCustom.value : subjectSelect?.value;
+            const roll = rollInput?.value || '';
+            
+            if (grade > 0 && subject && roll) {
+                preview.style.display = 'block';
+                document.getElementById('previewRoll').textContent = roll;
+                document.getElementById('previewSubject').textContent = subject || '-';
+                document.getElementById('previewGrade').textContent = grade + '%';
+                
+                // Calculate grade status
+                let status = '';
+                let statusClass = '';
+                if (grade >= 90) {
+                    status = 'Excellent';
+                    statusClass = 'bg-success';
+                } else if (grade >= 75) {
+                    status = 'Good';
+                    statusClass = 'bg-info';
+                } else if (grade >= 60) {
+                    status = 'Average';
+                    statusClass = 'bg-warning';
+                } else if (grade >= 40) {
+                    status = 'Pass';
+                    statusClass = 'bg-primary';
+                } else {
+                    status = 'Fail';
+                    statusClass = 'bg-danger';
+                }
+                
+                document.getElementById('previewStatus').textContent = status;
+                document.getElementById('previewStatus').className = 'badge ' + statusClass;
+                
+                // Calculate grade point (simple example)
+                const gradePoint = (grade / 10).toFixed(1);
+                document.getElementById('previewPoint').textContent = gradePoint;
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Form validation
+        const form = document.getElementById('addGradeForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const grade = parseFloat(gradeInput.value);
+                if (grade < 0 || grade > 100) {
+                    e.preventDefault();
+                    showError('Please enter a valid grade between 0 and 100!');
+                    return;
+                }
+                showSuccess('Grade added successfully!');
+            });
+        }
+
+        function showError(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: message,
+                timer: 2000
+            });
+        }
+
+        function showSuccess(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: message,
+                timer: 2000
+            });
+        }
+    });
+</script>
+
+<style>
+    .card {
+        border-radius: 12px;
+        transition: transform 0.2s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+    }
+    .input-group-text {
+        border-radius: 8px 0 0 8px;
+    }
+    .form-control, .form-select {
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+        border-color: #28a745;
+    }
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+    #gradePreview {
+        border-left: 4px solid #28a745;
+    }
+</style>
+{% endblock %}

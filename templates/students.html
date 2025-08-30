@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+{% block header %}👥 Students{% endblock %}
+
+{% block content %}
+<div class="chart-card">
+  <div class="d-flex justify-content-between align-items-center">
+    <h5 class="m-0">All Students</h5>
+    <a href="/add-student" class="btn btn-sm btn-success">➕ Add Student</a>
+  </div>
+  <table class="table table-striped mt-3">
+    <thead class="table-dark"><tr><th>Roll No</th><th>Name</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>{{ s.roll_number }}</td>
+        <td>{{ s.name }}</td>
+        <td>
+          <a href="/student/{{ s.roll_number }}" class="btn btn-sm btn-outline-primary">View</a>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not students %}
+      <tr><td colspan="3" class="text-center text-muted">No students found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

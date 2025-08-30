@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Student Reports</h3>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm" onclick="exportToCSV()">
+            <i class="fas fa-download me-1"></i> Export CSV
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">
+            <i class="fas fa-print me-1"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Subject Filter</label>
+                <select class="form-select" id="subjectFilter">
+                    <option value="all">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject }}">{{ subject }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Grade Range</label>
+                <select class="form-select" id="gradeFilter">
+                    <option value="all">All Grades</option>
+                    <option value="90-100">90-100% (Excellent)</option>
+                    <option value="75-89">75-89% (Good)</option>
+                    <option value="60-74">60-74% (Average)</option>
+                    <option value="40-59">40-59% (Pass)</option>
+                    <option value="0-39">0-39% (Fail)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Sort By</label>
+                <select class="form-select" id="sortBy">
+                    <option value="name">Student Name</option>
+                    <option value="roll">Roll Number</option>
+                    <option value="subject">Subject</option>
+                    <option value="grade">Grade (High to Low)</option>
+                    <option value="grade_asc">Grade (Low to High)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search students...">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-light border-0 text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h4 class="mb-0">{{ total_students }}</h4>
+                <small class="text-muted">Total Students</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light border-0 text-center">
+            <div class="card-body">
+                <i class="fas fa-book-open fa-2x text-success mb-2"></i>
+                <h4 class="mb-0">{{ total_subjects }}</h4>
+                <small class="text-muted">Subjects</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light border-0 text-center">
+            <div class="card-body">
+                <i class="fas fa-chart-bar fa-2x text-warning mb-2"></i>
+                <h4 class="mb-0">{{ total_grades }}</h4>
+                <small class="text-muted">Grades Recorded</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light border-0 text-center">
+            <div class="card-body">
+                <i class="fas fa-percentage fa-2x text-info mb-2"></i>
+                <h4 class="mb-0">{{ average_grade }}%</h4>
+                <small class="text-muted">Average Grade</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="reportsTable">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in report_data %}
+                    <tr class="report-row" data-subject="{{ r.subject if r.subject else '' }}" data-grade="{{ r.grade if r.grade is not none else 0 }}">
+                        <td><span class="badge bg-secondary">{{ r.roll_number }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>{{ r.name }}</div>
+                            </div>
+                        </td>
+                        <td>{{ r.subject if r.subject else "-" }}</td>
+                        <td>
+                            {% if r.grade is not none %}
+                            <span class="fw-bold">{{ r.grade }}%</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.grade is not none %}
+                                {% if r.grade >= 90 %}
+                                <span class="badge bg-success">Excellent</span>
+                                {% elif r.grade >= 75 %}
+                                <span class="badge bg-primary">Good</span>
+                                {% elif r.grade >= 60 %}
+                                <span class="badge bg-info">Average</span>
+                                {% elif r.grade >= 40 %}
+                                <span class="badge bg-warning">Pass</span>
+                                {% else %}
+                                <span class="badge bg-danger">Fail</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="viewStudent('{{ r.roll_number }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="editGrade('{{ r.roll_number }}', '{{ r.subject }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Report Data Available</h5>
+                                <p class="text-muted">Add grades to generate reports</p>
+                                <a href="/add-grade" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Add Grades
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if report_data %}
+    <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>Showing {{ report_data|length }} records</div>
+            <div class="text-muted">Last updated: {{ current_time }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript for filtering and functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectFilter = document.getElementById('subjectFilter');
+    const gradeFilter = document.getElementById('gradeFilter');
+    const sortBy = document.getElementById('sortBy');
+    const searchInput = document.getElementById('searchInput');
+    const rows = document.querySelectorAll('.report-row');
+
+    // Filter functionality
+    function applyFilters() {
+        const subjectValue = subjectFilter.value;
+        const gradeValue = gradeFilter.value;
+        const searchValue = searchInput.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const subject = row.getAttribute('data-subject');
+            const grade = parseFloat(row.getAttribute('data-grade'));
+            const text = row.textContent.toLowerCase();
+            
+            let subjectMatch = subjectValue === 'all' || subject === subjectValue;
+            let gradeMatch = true;
+            let searchMatch = text.includes(searchValue);
+            
+            // Apply grade filter
+            if (gradeValue !== 'all') {
+                const [min, max] = gradeValue.split('-').map(Number);
+                gradeMatch = grade >= min && grade <= max;
+            }
+            
+            // Show/hide based on filters
+            if (subjectMatch && gradeMatch && searchMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Add event listeners
+    subjectFilter.addEventListener('change', applyFilters);
+    gradeFilter.addEventListener('change', applyFilters);
+    sortBy.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    // Initial filter application
+    applyFilters();
+});
+
+function viewStudent(rollNumber) {
+    window.location.href = `/view-student/${rollNumber}`;
+}
+
+function editGrade(rollNumber, subject) {
+    alert(`Edit grade for Roll: ${rollNumber}, Subject: ${subject}`);
+    // Implement edit functionality here
+}
+
+function exportToCSV() {
+    // Simple CSV export implementation
+    let csvContent = "Roll Number,Name,Subject,Grade,Status\n";
+    
+    document.querySelectorAll('.report-row').forEach(row => {
+        if (row.style.display !== 'none') {
+            const cells = row.querySelectorAll('td');
+            const roll = cells[0].textContent.trim();
+            const name = cells[1].textContent.trim();
+            const subject = cells[2].textContent.trim();
+            const grade = cells[3].textContent.trim();
+            const status = cells[4].textContent.trim();
+            
+            csvContent += `"${roll}","${name}","${subject}","${grade}","${status}"\n`;
+        }
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'student_reports.csv';
+    link.click();
+}
+</script>
+
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+}
+.table th {
+    border-top: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+.report-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

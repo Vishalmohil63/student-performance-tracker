@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4 text-center">
+  <h1 class="mb-4">📊 Class Averages (All Subjects)</h1>
+
+  <!-- Toggle Buttons -->
+  <div class="btn-group mb-3" role="group">
+    <button class="btn btn-primary" onclick="renderChart('bar')">Bar</button>
+    <button class="btn btn-success" onclick="renderChart('pie')">Pie</button>
+    <button class="btn btn-info" onclick="renderChart('line')">Line</button>
+  </div>
+
+  <!-- Chart Container -->
+  <div id="chartBox" class="p-3 bg-light rounded shadow-sm mx-auto">
+    <canvas id="avgChart"></canvas>
+  </div>
+</div>
+
+<!-- Chart.js include -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+  // Flask → JS data
+  const subjects = JSON.parse('{{ subjects | tojson | safe }}');
+  const values   = JSON.parse('{{ values   | tojson | safe }}');
+  const totals   = JSON.parse('{{ totals   | tojson | safe }}');
+
+  const ctx = document.getElementById('avgChart').getContext('2d');
+  let chart;
+
+  // Function to render chart with selected type
+  function renderChart(type = 'bar') {
+    if (chart) chart.destroy(); // destroy old chart before new render
+    chart = new Chart(ctx, {
+      type: type,
+      data: {
+        labels: subjects,
+       datasets: [{
+  label: 'Average Marks',
+  data: values,
+  backgroundColor: [
+    'rgba(72, 201, 176, 0.8)',
+    'rgba(255, 159, 64, 0.8)',
+    'rgba(153, 102, 255, 0.8)',
+    'rgba(255, 99, 132, 0.8)',
+    'rgba(255, 205, 86, 0.8)',
+    'rgba(54, 162, 235, 0.8)',
+    'rgba(201, 203, 207, 0.8)'
+  ],
+  borderColor: [
+    'rgba(72, 201, 176, 1)',
+    'rgba(255, 159, 64, 1)',
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 99, 132, 1)',
+    'rgba(255, 205, 86, 1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(201, 203, 207, 1)'
+  ],
+  borderWidth: 1
+}]
+
+    
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,   // ✅ parent div ki height follow karega
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const i = context.dataIndex;
+                return `Avg: ${values[i]} | Students: ${totals[i]}`;
+              }
+            }
+          }
+        },
+        scales: type === 'bar' || type === 'line' ? {
+          y: { beginAtZero: true, max: 100, title: { display: true, text: 'Average Marks' } },
+          x: { title: { display: true, text: 'Subjects' } }
+        } : {}
+      }
+    });
+  }
+
+  // Load default chart
+  renderChart('bar');
+</script>
+
+<style>
+  /* ✅ Fixed chart size */
+  #chartBox {
+    width: 500px;
+    height: 350px;
+  }
+</style>
+
+{% endblock %}
